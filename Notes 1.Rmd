@@ -1,8 +1,8 @@
-stall.---
+---
 title: "Notes - Class 1"
 author: "Simon G. Brauer"
 date: "Tuesday, October 06, 2015"
-output: pdf_document
+output: html_document
 ---
 #Class 1: October 6th, 2015
 ##Websites for the class
