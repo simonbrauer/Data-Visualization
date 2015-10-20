@@ -1,0 +1,137 @@
+stall.---
+title: "Notes - Class 1"
+author: "Simon G. Brauer"
+date: "Tuesday, October 06, 2015"
+output: pdf_document
+---
+#Class 1: October 6th, 2015
+##Websites for the class
+http://socviz.github.io/soc880/
+
+http://github.com/socviz/soc880
+
+##First sample code (sort of)
+```{r}
+data <- c(1, 1, 4, 1, 1, 4, 1)
+data
+
+x <- rnorm(n = 100)
+y <- x + rnorm(n = 100)
+```
+
+```{r, echo = FALSE}
+library(ggplot2)
+testmod <- lm(x ~ y)
+ggplot() +
+  geom_point(aes(x = x, y = y)) +
+  geom_abline(intercept = 0.057, slope = 0.509)
+```
+
+##Details on R
+R has a working directory
+```{r}
+getwd()
+```
+
+How Kieran organizes his working directory...
+
+1. data folder
+2. doc folder
+3. figures folder
+
+* r file in root
+
+everything in R is an object...
+```{r}
+(my_numbers <- c(1, 2, 3, 1, 3,5, 25))
+summary(my_numbers)
+```
+
+every object has a class
+```{r}
+class(my_numbers)
+#even functions have classes
+class(summary)
+```
+
+Objects can hold the output of functions
+```{r}
+(my_summary <- summary(my_numbers))
+class(my_summary)
+```
+
+Examples in R
+```{r}
+my_numbers * 2
+table(my_numbers)
+sd(my_numbers)
+```
+
+you can get information in different ways
+```{r}
+str(my_numbers)
+str(my_summary)
+str(summary)
+```
+
+#why are charts sometimes bad?
+
+*Pure aesthetics: presentation is fine but ugly
+
+*Figure shows you less than it should or could
+
+*Figure shows more than it should
+
+*Figure can be misleading or misrepresent the data, accidentally or purposefully
+
+Consider the actual amount of information you're presenting and conside simplifying to emphasizeit (instead the background, coloring, etc.)
+
+*Look at William Cleveland's work on presenting data*
+
+His thoughts:
+
+* It's difficult to compare without common baselines
+* People misjudge areas like crazy
+* Acute angles are underestimated, obtuse are overestimated
+* You can't distinguish data points if they are overlapping
+* Colors are good for distinguishing categories but not for continuous variables
+* Difficult at interpreting curves because our perception is influenced by horizontal space
+
+###Let's get some data...
+```{r}
+library(devtools)
+gapminder.url <- "https://raw.githubusercontent.com/socviz/soc880/master/data/gapminder.csv"
+
+## What type of object is this?
+class(gapminder.url)
+data <- read.csv(url(gapminder.url))
+class(data)
+str(data)
+head(data)
+```
+
+let's plot it!
+```{r}
+p <- ggplot(data = data, aes(x = gdpPercap, y = lifeExp))
+lm(data = data, formula = lifeExp ~ gdpPercap)
+p + geom_point() + geom_abline(intercept = 54, slope = 0.0007)
+```
+
+##Homework for next time
+1. Create an RMarkdown file for your work
+2. Look again at the data
+3. Put lifeExp on the x-axis and gdpPercap on the y-axis
+4. plot pop on the x-axis and gdpPercap on the y-axis
+5. Plot year on the x-axis and any continuous variable on the y-axis
+
+#Homework
+```{r}
+##Put lifeEXP on the x-axis and gdpPercap on the y-axis
+ggplot(data = data, aes(x = lifeExp, y = gdpPercap)) + geom_point() + labs(title = "GDP Per Capita plotted Across Life Expectancy")
+
+##Put pop on the x-axis and gdpPercap on the y-axis
+ggplot(data = data, aes(x = pop, y = gdpPercap)) + geom_point() + labs(title = "GDP Per Capita Plotted Across Population")
+
+##Plot year on the x-axis and any continuous variable on the y-axis
+ggplot(data = data, aes(x = year, y = pop)) + geom_point() + labs(title = "Population Plotted Across Years")
+```
