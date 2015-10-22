@@ -1,0 +1,140 @@
+---
+title: "Class 2 - 10/20/2015"
+author: "Simon G. Brauer"
+date: "Tuesday, October 20, 2015"
+output: html_document
+---
+##Principles, one more time...
+
+Visualization isn't just taste. Basic perceptions are really important. We more easily see edges, contrasts, and movement. We judge relative distances rather than absolutes. We infer relationships between elements.
+
+##Shape, color, size...
+
+Shape is an *ok* way to highlight data. Color is generally much more effective. Size can be appropriate. Or, you can combine two or more of the three. ...however, multiple variations become difficult to interpret quickly. That said, highly structured data may benefit from multiple variations.
+
+##Coding
+
+```{r, echo = FALSE}
+gapminder.url <- "https://raw.githubusercontent.com/socviz/soc880/master/data/gapminder.csv"
+my.data <- read.csv(url(gapminder.url))
+```
+
+```{r}
+dim(my.data)
+head(my.data)
+```
+
+Let's make a ggplot object. ggplot builds a plot piece-by-piece. We start by sending the data as an argument. Then we create an aesthetic mapping that connects data with things we see. We set the dimensions: in this case, x and y. We assign this plot to *p*. However, we have yet to include a layer.
+
+```{r}
+require(ggplot2)
+p <- ggplot(data = my.data,
+            aes(x = gdpPercap, y = lifeExp))
+```
+
+Sooooo, let's add a layer.
+
+```{r}
+p + geom_point()
+```
+
+##The plot-making process
+
+0. Start with data in the correct shape.
+1. Tell ggplot *what* relationships you want to see.
+2. Tell ggplot *how* you want to see them.
+3. Layer these pictures as needed.
+4. Fine-tune scales, labels, tick marks, etc.
+
+We can add more layers.
+
+```{r}
+p + geom_point() + 
+    geom_smooth(method = "loess")
+```
+
+And reverse them.
+
+```{r}
+p + geom_smooth(method = "loess") + 
+    geom_point()
+```
+
+Let's try a straight regression line.
+
+```{r}
+p + geom_point() + 
+    geom_smooth(method = "lm")
+```
+
+And specify no method (the default).
+
+```{r}
+p + geom_point() + 
+    geom_smooth()
+```
+
+...and another layer...
+
+```{r}
+p + geom_point() +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+We can change the colors.
+
+```{r}
+p + geom_point(color = "firebrick") +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+But note that this isn't a mapping. The color of the points is not connected to any data. However, we *can* connect color to data.
+
+```{r}
+p <- ggplot(data = my.data, aes(x = gdpPercap, y = lifeExp, color = continent))
+p + geom_point() +
+    scale_x_log10()
+```
+
+Or we can leave the color aesthetic to point.
+
+```{r}
+p <- ggplot(data = my.data, aes(x = gdpPercap, y = lifeExp))
+p + geom_point(aes(color = continent)) +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+Or go crazy!
+
+```{r}
+p <- ggplot(data = my.data, aes(x = gdpPercap, y = lifeExp, color = continent))
+p + geom_point() +
+    geom_smooth(method = "loess", aes(fill = continent)) +
+    scale_x_log10() +
+    scale_color_brewer(palette = 8) +
+    scale_fill_brewer(palette = 8)
+```
+
+ggplot2 doesn't ensure you make a plot that makes sense.
+
+```{r}
+p + geom_line() +
+    ggtitle("oops") +
+    scale_x_continuous("") +
+    scale_y_continuous("")
+```
+
+But you can make sophistocated plots once you understand the grammar.
+
+```{r}
+p <- ggplot(data = my.data, aes(x = year, y = lifeExp))
+p1 <- p + geom_line(aes(group = country, color = country=="Rwanda")) + 
+          geom_smooth(size = 1.1, method = "loess")
+p1 + facet_wrap(~continent, nrow = 1) + labs(x = "Year", y = "Life Expectancy")
+```
+
+#Homework
+
