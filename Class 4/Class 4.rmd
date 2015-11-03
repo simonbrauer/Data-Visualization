@@ -1,0 +1,122 @@
+---
+title: "Class 4"
+author: "Simon G. Brauer"
+date: "Tuesday, November 03, 2015"
+output: html_document
+---
+
+```{r}
+setwd("C:/Users/Simon/OneDrive/Documents/Github/Data-Visualization/Class 4/")
+organs.url <- "https://raw.githubusercontent.com/socviz/soc880/gh-pages/data/organ-procurement.csv"
+organs.data <- read.csv(url(organs.url), row.names=1)
+dim(organs.data)
+head(organs.data)
+
+## For convenience, let R know year is a time measure.
+organs.data$year <- as.Date(strptime(organs.data$year, format="%Y"))
+
+library(GGally)
+
+my.vars <- c("donors", "pop", "gdp", "pubhealth", "assault")
+```
+
+We can start saving our graphics to external files. Generally, use PDF's for scalable, memory-efficient images.
+
+Also keep in mind that you need to open AND close the printing device.
+
+```{r}
+pdf(file = "Figures/ggpairs-plot-1.pdf", height = 15, width = 20)
+p <- ggpairs(subset(organs.data, select = my.vars), 
+             upper = list(continuous = "smooth"),
+             lower = list(continuous = "dot"))
+print(p)
+dev.off()
+
+my.vars <- c("donors", "pop.dens", "gdp", "pubhealth", "world", "consent.law", "opt")
+
+pdf(file = "Figures/ggpairs-plot-2.pdf", height = 20, width = 20)
+p <- ggpairs(subset(organs.data, select = my.vars), 
+             upper = list(continuous = "smooth", combo = "box", discrete = "ratio"),
+             lower = list(continuous = "points", combo = "dot", discrete = "facetbar"))
+print(p)
+dev.off()
+```
+
+Making my own
+
+```{r}
+my.vars <- c("donors", "pop.dens", "gdp", "pubhealth")
+pdf(file = "Figures/myfigure.pdf", height = 20, width = 20)
+p <- ggpairs(data = subset(organs.data, select = my.vars),
+             upper = list(continuous = "density"),
+             lower = list(continuous = "cor"))
+print(p)
+dev.off()
+```
+
+On to something new.
+
+```{r}
+library(Hmisc)
+library(rms)
+
+vc <- varclus(~donors + pop.dens + gdp + pubhealth + assault + world + consent.law, data = organs.data)
+plot(vc)
+
+###naclus does a cluster analysis of missing data; i.e. which variables share missing data?
+plot(naclus(organs.data))
+```
+
+Using linear models
+
+```{r}
+s <- summary(donors ~ pop.dens + gdp + pubhealth + assault + world + consent.law,
+              data=organs.data)
+
+plot(s, cex.labels = 0.6)
+
+out.lm <- lm(donors ~ pop.dens + gdp + pubhealth + assault + consent.law,
+             data=organs.data)
+
+summary(out.lm)
+
+out.ols <- ols(donors ~ pop.dens + gdp + pubhealth + assault + consent.law, data = organs.data)
+d <- datadist(organs.data)
+options(datadist="d")
+options(digits = 2)
+
+plot(summary(out.ols))
+
+library(broom)
+
+out.lm ,- lm(pubhealth ~ pop.dens + gdp + country, data = organs.data)
+summary(out.lm)
+
+###Create a data frame, but with high and low confidence intervals as columns
+out.tidy <- tidy(out.lm, conf.int = TRUE)
+class(out.tidy)
+
+head(out.tidy)
+
+###Augment does the same thing but for the entire data frame
+out.aug <- augment(out.lm)
+head(out.aug)
+
+p <- ggplot(out.tidy, aes(y=estimate,
+                          x=reorder(term, estimate)))
+p + geom_pointrange(aes(ymin=conf.low,
+                        ymax=conf.high)) +
+    geom_hline() +
+    coord_flip()
+
+library(survival)
+
+out.surv <- survfit(coxph(Surv(time, status) ~ age + sex, data=lung))
+
+out.tidy <- tidy(out.surv)
+
+p <- ggplot(out.tidy, aes(time, estimate))
+
+p + geom_line() +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = .2)
+```

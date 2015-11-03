@@ -1,0 +1,130 @@
+---
+title: "Class 3 - 10/27/2015"
+author: "Simon G. Brauer"
+date: "Tuesday, October 27, 2015"
+output: html_document
+---
+
+```{r include = FALSE}
+require(ggplot2)
+
+gapminder.url <- "https://raw.githubusercontent.com/socviz/soc880/master/data/gapminder.csv"
+my.data <- read.csv(url(gapminder.url))
+dim(my.data)
+
+head(my.data)
+```
+
+This plot is wrong...
+
+```{r}
+p <- ggplot(my.data, aes(x = gdpPercap, y = lifeExp))
+p + geom_line() + scale_x_log10()
+```
+
+Is this better?
+
+```{r}
+p <- ggplot(my.data, aes(x = year, y = lifeExp))
+p + geom_line() + 
+    scale_x_log10()
+```
+
+OK, one more time.
+
+```{r}
+p <- ggplot(my.data, aes(x = year, y = lifeExp))
+p + geom_line(aes(group = country))
+```
+
+Ooooooone more time...
+
+```{r}
+p <- ggplot(my.data, aes(x = year, y = lifeExp))
+p + geom_line(aes(group = country, color = continent))
+```
+
+Let's just look at Asia.
+
+```{r}
+p <- ggplot(my.data, aes(x = year, y = lifeExp))
+p + geom_line(aes(group = country, color = continent=="Asia"))
+#Shoutout from Kieran. Yesssssss.
+```
+
+Hmm, interesting. Let's make it more attractive.
+
+```{r}
+p <- ggplot(my.data, aes(x = year, y = lifeExp))
+p + geom_line(aes(group = country, color = continent=="Asia")) +
+    scale_color_manual(values = c("gray70", "firebrick"), 
+                       labels = c("All other countries", "Asian countries")) +
+    scale_x_log10() +
+    theme(legend.position = "top") +
+    guides(color = guide_legend(reverse = TRUE))
+```
+
+###Time for some new data
+
+```{r}
+organs.url <- "https://raw.githubusercontent.com/socviz/soc880/gh-pages/data/organ-procurement.csv"
+organs.data <- read.csv(url(organs.url), row.names = 1)
+```
+
+Make sure R knows this is a date.
+
+```{r}
+organs.data$year <- as.Date(strptime(organs.data$year, format = "%Y"))
+```
+
+Playing around with the new data.
+
+```{r}
+new.plot <- ggplot(data = organs.data, aes(x = year, y = donors))
+new.plot + geom_line(aes(group = country)) + facet_grid(~consent.law)
+
+library(magrittr)
+library(dplyr)
+
+by.country <- organs.data %>% group_by(consent.law, country) %>%
+              summarize(donors = mean(donors, na.rm = TRUE))
+anew.plot <- ggplot(by.country, aes(x = donors, y = country, color = consent.law))
+anew.plot + geom_point(size = 3)
+```
+
+That plot is out of order. Let's fix that. And make it pretty.
+
+```{r}
+anew.plot <- ggplot(by.country, aes(x = donors, y = reorder(country, donors)))
+anew.plot + geom_point(size = 3) +
+            facet_grid(consent.law ~ ., scales = "free") +
+            labs(x = "Donor Procurement Rate (per million population)",
+                 y = "") +
+            theme(legend.position = "top")
+```
+
+Cleveland Dotplots are a good at plotting one-dimensional data with categories as an alternative to...
+
+*Bar charts
+*Column charts
+
+Boxplots...
+
+```{r}
+third <- ggplot(data = organs.data, aes(x = reorder(country, donors, na.rm = TRUE), y = donors))
+third + geom_boxplot(aes(fill = consent.law), outlier.color = "Black") +
+        coord_flip() +
+        labs(x = "", 
+             y = "Donor Procurement Rate")
+```
+
+Maybe this would be better as a dotplot, since there's so few data points.
+
+```{r}
+dotp <- ggplot(data = organs.data, aes(x = reorder(country, donors, na.rm = TRUE), y = donors))
+
+dotp + geom_jitter(aes(color = consent.law), position = position_jitter(width = 0.2)) + 
+       coord_flip() +
+       labs(x = "",
+            y = "Donor Procurement Rate")
+```
