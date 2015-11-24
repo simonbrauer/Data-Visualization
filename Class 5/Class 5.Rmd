@@ -1,0 +1,24 @@
+---
+title: "Class 5"
+author: "Simon G. Brauer"
+date: "Tuesday, November 17, 2015"
+output: html_document
+---
+
+##Maps
+
+Maps can be really useful, but introduce a lot of bias in the visual structure of the image. For example, many/most maps end up just being population density maps.
+
+```{r}
+library(statebins)
+dat <- read.csv("http://www.washingtonpost.com/wp-srv/special/business/states-most-threatened-by-trade/states.csv?cache=1", stringsAsFactors = FALSE)
+```
+
+```{r}
+p <- statebins(dat, "state", "avgshare94_00", breaks = 4, 
+                labels = c("0-1", "1-2", "2-3", "3-4"),
+                legend_title = "Share of workforce with jobs or threatened by trade", font_size = 3)
+                
+p + theme(legend.position = "bottom") + 
+  ggtitle("1994-2000")
+```
